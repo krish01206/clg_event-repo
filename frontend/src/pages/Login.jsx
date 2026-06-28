@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
@@ -7,66 +7,85 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Show success message if redirected from registration
+  const successMsg = location.state?.successMsg || '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', marginTop: '4rem' }}>
-      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '450px' }}>
-        <h2 className="text-center text-gradient" style={{ marginBottom: '2rem' }}>Welcome Back</h2>
-        
-        {error && (
-          <div style={{ backgroundColor: 'rgba(255, 76, 76, 0.1)', border: '1px solid var(--danger-color)', color: 'var(--danger-color)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
-            {error}
-          </div>
-        )}
+    <div className="container page-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '460px' }}>
+        <div className="text-center mb-3">
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚡</div>
+          <h1 className="text-gradient" style={{ fontSize: '1.8rem' }}>Welcome Back</h1>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>Sign in to your EventHub account</p>
+        </div>
+
+        {successMsg && <div className="alert alert-success">{successMsg}</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input 
-              type="email" 
-              className="form-control" 
+            <label className="form-label" htmlFor="login-email">Email Address</label>
+            <input
+              id="login-email"
+              type="email"
+              className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required 
-              placeholder="Enter your email"
+              required
+              placeholder="yourname@college.edu"
+              autoComplete="email"
             />
           </div>
+
           <div className="form-group">
-            <label className="form-label">Password</label>
-            <input 
-              type="password" 
-              className="form-control" 
+            <label className="form-label" htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              className="form-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
               placeholder="Enter your password"
+              autoComplete="current-password"
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
-            {loading ? 'Logging in...' : 'Log In'}
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full mt-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Signing in...</>
+            ) : 'Sign In →'}
           </button>
         </form>
-        
-        <p className="text-center" style={{ marginTop: '1.5rem', color: 'var(--text-secondary)' }}>
-          Don't have an account? <Link to="/register">Register here</Link>
+
+        <hr className="divider" />
+        <p className="text-center text-muted" style={{ fontSize: '0.9rem' }}>
+          Don't have an account?{' '}
+          <Link to="/register">Register here</Link>
         </p>
       </div>
     </div>

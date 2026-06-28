@@ -10,16 +10,25 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const storedName = localStorage.getItem('userName');
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setUser({
-          id: decoded.id,
-          role: decoded.role,
-        });
+        // Check token expiry
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userName');
+        } else {
+          setUser({
+            id: decoded.id,
+            role: decoded.role,
+            name: storedName || '',
+          });
+        }
       } catch (err) {
-        console.error("Invalid token", err);
+        console.error('Invalid token', err);
         localStorage.removeItem('token');
+        localStorage.removeItem('userName');
       }
     }
     setLoading(false);
@@ -27,44 +36,37 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    const { token, user: userData } = res.data;
+    const { token, role, name, id } = res.data;
     localStorage.setItem('token', token);
-    
-    // Fallback if user data is not sent, decode the token
-    if (userData) {
-      setUser(userData);
-    } else {
-      const decoded = jwtDecode(token);
-      setUser({
-        id: decoded.id,
-        role: decoded.role,
-      });
-    }
+    localStorage.setItem('userName', name || '');
+    setUser({ id, role, name: name || '' });
   };
 
-  const register = async (name, email, password, role = 'student') => {
-    const res = await api.post('/auth/register', { name, email, password, role });
-    const { token, user: userData } = res.data;
+  const register = async (name, email, password) => {
+    const res = await api.post('/auth/register', { name, email, password });
+    const { token, role, name: userName } = res.data;
     localStorage.setItem('token', token);
-    
-    if (userData) {
-      setUser(userData);
-    } else {
-      const decoded = jwtDecode(token);
-      setUser({
-        id: decoded.id,
-        role: decoded.role,
-      });
-    }
+    localStorage.setItem('userName', userName || name);
+    setUser({
+      id: jwtDecode(token).id,
+      role: role || 'student',
+      name: userName || name,
+    });
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userName');
     setUser(null);
   };
 
+  const updateUserName = (newName) => {
+    setUser((prev) => ({ ...prev, name: newName }));
+    localStorage.setItem('userName', newName);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserName }}>
       {children}
     </AuthContext.Provider>
   );

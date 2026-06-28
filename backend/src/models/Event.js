@@ -4,27 +4,35 @@ const eventSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Event title is required"],
+      trim: true,
     },
 
     description: {
       type: String,
-      required: true,
+      required: [true, "Description is required"],
     },
 
     category: {
       type: String,
-      required: true,
+      required: [true, "Category is required"],
+      enum: ["Technical", "Cultural", "Sports", "Workshop", "Seminar"],
     },
 
     location: {
       type: String,
-      required: true,
+      required: [true, "Location is required"],
     },
 
     date: {
       type: Date,
-      required: true,
+      required: [true, "Date is required"],
+    },
+
+    time: {
+      type: String,
+      required: [true, "Time is required"],
+      default: "00:00",
     },
 
     image: {
@@ -42,7 +50,4 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model(
-  "Event",
-  eventSchema
-);
+export default mongoose.model("Event", eventSchema);

@@ -6,20 +6,30 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Frontend validation
+    if (name.trim().length < 2) {
+      return setError('Name must be at least 2 characters.');
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return setError('Please enter a valid email address.');
+    }
+    if (password.length < 6) {
+      return setError('Password must be at least 6 characters.');
+    }
+
     setLoading(true);
-    
     try {
-      await register(name, email, password, role);
+      await register(name.trim(), email, password);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -29,69 +39,81 @@ const Register = () => {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', marginTop: '4rem' }}>
-      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '450px' }}>
-        <h2 className="text-center text-gradient" style={{ marginBottom: '2rem' }}>Create Account</h2>
-        
-        {error && (
-          <div style={{ backgroundColor: 'rgba(255, 76, 76, 0.1)', border: '1px solid var(--danger-color)', color: 'var(--danger-color)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
-            {error}
-          </div>
-        )}
+    <div className="container page-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '460px' }}>
+        <div className="text-center mb-3">
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🎓</div>
+          <h1 className="text-gradient" style={{ fontSize: '1.8rem' }}>Create Account</h1>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>Join the College Event Portal</p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label className="form-label">Full Name</label>
-            <input 
-              type="text" 
-              className="form-control" 
+            <label className="form-label" htmlFor="reg-name">Full Name</label>
+            <input
+              id="reg-name"
+              type="text"
+              className="form-control"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required 
-              placeholder="John Doe"
+              required
+              placeholder="e.g. Mihir Palat"
+              autoComplete="name"
             />
           </div>
+
           <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input 
-              type="email" 
-              className="form-control" 
+            <label className="form-label" htmlFor="reg-email">Email Address</label>
+            <input
+              id="reg-email"
+              type="email"
+              className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required 
-              placeholder="Enter your email"
+              required
+              placeholder="yourname@college.edu"
+              autoComplete="email"
             />
           </div>
+
           <div className="form-group">
-            <label className="form-label">Password</label>
-            <input 
-              type="password" 
-              className="form-control" 
+            <label className="form-label" htmlFor="reg-password">
+              Password
+              <span className="text-muted" style={{ fontWeight: 400, marginLeft: '0.4rem' }}>(min. 6 characters)</span>
+            </label>
+            <input
+              id="reg-password"
+              type="password"
+              className="form-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
               placeholder="Create a strong password"
+              autoComplete="new-password"
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Role</label>
-            <select 
-              className="form-control" 
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-            >
-              <option value="student">Student</option>
-              <option value="admin">Admin</option>
-            </select>
+
+          <div className="alert alert-info" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            🎓 Registering as a <strong>Student</strong> account
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={loading}
+          >
+            {loading ? (
+              <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating Account...</>
+            ) : 'Create Account →'}
           </button>
         </form>
-        
-        <p className="text-center" style={{ marginTop: '1.5rem', color: 'var(--text-secondary)' }}>
-          Already have an account? <Link to="/login">Login here</Link>
+
+        <hr className="divider" />
+        <p className="text-center text-muted" style={{ fontSize: '0.9rem' }}>
+          Already have an account?{' '}
+          <Link to="/login">Login here</Link>
         </p>
       </div>
     </div>
